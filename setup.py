@@ -7,6 +7,8 @@ from setuptools import setup
 setup(
     name='fine-tuned-bert',
     version='0.1.0',
+    description='Fine-tuning Bert using NSP loss',
+    author='Jiajun Bao',
     packages=['next_sentence_pred_finetune'],
     include_package_data=True,
     install_requires=[
