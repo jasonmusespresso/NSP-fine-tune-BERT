@@ -1,86 +1,49 @@
-from argparse import ArgumentParser
-from pathlib import Path
-from tqdm import tqdm, trange
-from tempfile import TemporaryDirectory
-import shelve
-from multiprocessing import Pool
+from __future__ import absolute_import, division, print_function
 
 from random import random, randrange, randint, shuffle, choice
-from pytorch_transformers.tokenization_bert import BertTokenizer
-import numpy as np
 import json
 import collections
+import numpy as np
+from tqdm import trange
+from collections import namedtuple
 
 
-class DocumentDatabase:
-    def __init__(self, reduce_memory=False):
-        if reduce_memory:
-            self.temp_dir = TemporaryDirectory()
-            self.working_dir = Path(self.temp_dir.name)
-            self.document_shelf_filepath = self.working_dir / 'shelf.db'
-            self.document_shelf = shelve.open(str(self.document_shelf_filepath),
-                                              flag='n', protocol=-1)
-            self.documents = None
-        else:
-            self.documents = []
-            self.document_shelf = None
-            self.document_shelf_filepath = None
-            self.temp_dir = None
-        self.doc_lengths = []
-        self.doc_cumsum = None
-        self.cumsum_max = None
-        self.reduce_memory = reduce_memory
+InputFeatures = namedtuple("InputFeatures", "input_ids input_mask segment_ids lm_label_ids is_next")
 
-    def add_document(self, document):
-        if not document:
-            return
-        if self.reduce_memory:
-            current_idx = len(self.doc_lengths)
-            self.document_shelf[str(current_idx)] = document
-        else:
-            self.documents.append(document)
-        self.doc_lengths.append(len(document))
 
-    def _precalculate_doc_weights(self):
-        self.doc_cumsum = np.cumsum(self.doc_lengths)
-        self.cumsum_max = self.doc_cumsum[-1]
+def convert_example_to_features(example, tokenizer, max_seq_length):
+    tokens = example["tokens"]
+    segment_ids = example["segment_ids"]
+    is_random_next = example["is_random_next"]
+    masked_lm_positions = example["masked_lm_positions"]
+    masked_lm_labels = example["masked_lm_labels"]
 
-    def sample_doc(self, current_idx, sentence_weighted=True):
-        # Uses the current iteration counter to ensure we don't sample the same doc twice
-        if sentence_weighted:
-            # With sentence weighting, we sample docs proportionally to their sentence length
-            if self.doc_cumsum is None or len(self.doc_cumsum) != len(self.doc_lengths):
-                self._precalculate_doc_weights()
-            rand_start = self.doc_cumsum[current_idx]
-            rand_end = rand_start + self.cumsum_max - self.doc_lengths[current_idx]
-            sentence_index = randrange(rand_start, rand_end) % self.cumsum_max
-            sampled_doc_index = np.searchsorted(self.doc_cumsum, sentence_index, side='right')
-        else:
-            # If we don't use sentence weighting, then every doc has an equal chance to be chosen
-            sampled_doc_index = (current_idx + randrange(1, len(self.doc_lengths))) % len(self.doc_lengths)
-        assert sampled_doc_index != current_idx
-        if self.reduce_memory:
-            return self.document_shelf[str(sampled_doc_index)]
-        else:
-            return self.documents[sampled_doc_index]
+    assert len(tokens) == len(segment_ids) <= max_seq_length  # The preprocessed data should be already truncated
+    input_ids = tokenizer.convert_tokens_to_ids(tokens)
+    masked_label_ids = tokenizer.convert_tokens_to_ids(masked_lm_labels)
 
-    def __len__(self):
-        return len(self.doc_lengths)
+    input_array = np.zeros(max_seq_length, dtype=np.int)
+    input_array[:len(input_ids)] = input_ids
 
-    def __getitem__(self, item):
-        if self.reduce_memory:
-            return self.document_shelf[str(item)]
-        else:
-            return self.documents[item]
+    mask_array = np.zeros(max_seq_length, dtype=np.bool)
+    mask_array[:len(input_ids)] = 1
 
-    def __enter__(self):
-        return self
+    segment_array = np.zeros(max_seq_length, dtype=np.bool)
+    segment_array[:len(segment_ids)] = segment_ids
 
-    def __exit__(self, exc_type, exc_val, traceback):
-        if self.document_shelf is not None:
-            self.document_shelf.close()
-        if self.temp_dir is not None:
-            self.temp_dir.cleanup()
+    lm_label_array = np.full(max_seq_length, dtype=np.int, fill_value=-1)
+    lm_label_array[masked_lm_positions] = masked_label_ids
+
+    features = InputFeatures(input_ids=input_array,
+                             input_mask=mask_array,
+                             segment_ids=segment_array,
+                             lm_label_ids=lm_label_array,
+                             is_next=is_random_next)
+    return features
+
+
+MaskedLmInstance = collections.namedtuple("MaskedLmInstance",
+                                          ["index", "label"])
 
 
 def truncate_seq_pair(tokens_a, tokens_b, max_num_tokens):
@@ -101,10 +64,6 @@ def truncate_seq_pair(tokens_a, tokens_b, max_num_tokens):
             trunc_tokens.pop()
 
 
-MaskedLmInstance = collections.namedtuple("MaskedLmInstance",
-                                          ["index", "label"])
-
-
 def create_masked_lm_predictions(tokens, masked_lm_prob, max_predictions_per_seq, whole_word_mask, vocab_list):
     """Creates the predictions for the masked LM objective. This is mostly copied from the Google BERT repo, but
     with several refactors to clean it up and remove a lot of unnecessary variables."""
@@ -121,7 +80,7 @@ def create_masked_lm_predictions(tokens, masked_lm_prob, max_predictions_per_seq
         # Note that Whole Word Masking does *not* change the training code
         # at all -- we still predict each WordPiece independently, softmaxed
         # over the entire vocabulary.
-        if (whole_word_mask and len(cand_indices) >= 1 and token.startswith("##")):
+        if whole_word_mask and len(cand_indices) >= 1 and token.startswith("##"):
             cand_indices[-1].append(i)
         else:
             cand_indices.append([i])
@@ -289,69 +248,3 @@ def create_training_file(docs, vocab_list, args, epoch_num):
         }
         metrics_file.write(json.dumps(metrics))
 
-
-def main():
-    parser = ArgumentParser()
-    parser.add_argument('--train_corpus', type=Path, required=True)
-    parser.add_argument("--output_dir", type=Path, required=True)
-    parser.add_argument("--bert_model", type=str, required=True,
-                        choices=["bert-base-uncased", "bert-large-uncased", "bert-base-cased",
-                                 "bert-base-multilingual-uncased", "bert-base-chinese", "bert-base-multilingual-cased"])
-    parser.add_argument("--do_lower_case", action="store_true")
-    parser.add_argument("--do_whole_word_mask", action="store_true",
-                        help="Whether to use whole word masking rather than per-WordPiece masking.")
-    parser.add_argument("--reduce_memory", action="store_true",
-                        help="Reduce memory usage for large datasets by keeping data on disc rather than in memory")
-
-    parser.add_argument("--num_workers", type=int, default=1,
-                        help="The number of workers to use to write the files")
-    parser.add_argument("--epochs_to_generate", type=int, default=3,
-                        help="Number of epochs of data to pregenerate")
-    parser.add_argument("--max_seq_len", type=int, default=128)
-    parser.add_argument("--short_seq_prob", type=float, default=0.1,
-                        help="Probability of making a short sentence as a training example")
-    parser.add_argument("--masked_lm_prob", type=float, default=0.15,
-                        help="Probability of masking each token for the LM task")
-    parser.add_argument("--max_predictions_per_seq", type=int, default=20,
-                        help="Maximum number of tokens to mask in each sequence")
-
-    args = parser.parse_args()
-
-    if args.num_workers > 1 and args.reduce_memory:
-        raise ValueError("Cannot use multiple workers while reducing memory")
-
-    tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
-    vocab_list = list(tokenizer.vocab.keys())
-    with DocumentDatabase(reduce_memory=args.reduce_memory) as docs:
-        with args.train_corpus.open() as f:
-            doc = []
-            for line in tqdm(f, desc="Loading Dataset", unit=" lines"):
-                line = line.strip()
-                if line == "":
-                    docs.add_document(doc)
-                    doc = []
-                else:
-                    tokens = tokenizer.tokenize(line)
-                    doc.append(tokens)
-            if doc:
-                docs.add_document(doc)  # If the last doc didn't end on a newline, make sure it still gets added
-        if len(docs) <= 1:
-            exit("ERROR: No document breaks were found in the input file! These are necessary to allow the script to "
-                 "ensure that random NextSentences are not sampled from the same document. Please add blank lines to "
-                 "indicate breaks between documents in your input file. If your dataset does not contain multiple "
-                 "documents, blank lines can be inserted at any natural boundary, such as the ends of chapters, "
-                 "sections or paragraphs.")
-
-        args.output_dir.mkdir(exist_ok=True)
-
-        if args.num_workers > 1:
-            writer_workers = Pool(min(args.num_workers, args.epochs_to_generate))
-            arguments = [(docs, vocab_list, args, idx) for idx in range(args.epochs_to_generate)]
-            writer_workers.starmap(create_training_file, arguments)
-        else:
-            for epoch in trange(args.epochs_to_generate, desc="Epoch"):
-                create_training_file(docs, vocab_list, args, epoch)
-
-
-if __name__ == '__main__':
-    main()
