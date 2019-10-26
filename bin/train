@@ -1,0 +1,12 @@
+#!/bin/bash
+# train
+
+set -Eeuo pipefail
+set -x
+
+./env/bin/python3 next_sentence_pred_finetune/finetune_bert.py \
+--pregenerated_data ./data/processed/ \
+--bert_model bert-base-uncased \
+--do_lower_case \
+--output_dir checkpoints/ \
+--epochs 3 \

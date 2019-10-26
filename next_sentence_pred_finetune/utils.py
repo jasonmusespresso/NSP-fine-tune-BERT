@@ -67,6 +67,7 @@ def truncate_seq_pair(tokens_a, tokens_b, max_num_tokens):
 def create_masked_lm_predictions(tokens, masked_lm_prob, max_predictions_per_seq, whole_word_mask, vocab_list):
     """Creates the predictions for the masked LM objective. This is mostly copied from the Google BERT repo, but
     with several refactors to clean it up and remove a lot of unnecessary variables."""
+    # TO DO(Jiajun Bao): support new transformer repo: https://github.com/huggingface/transformers
     cand_indices = []
     for (i, token) in enumerate(tokens):
         if token == "[CLS]" or token == "[SEP]":
@@ -136,6 +137,7 @@ def create_instances_from_document(
     However, we make some changes and improvements. Sampling is improved and no longer requires a loop in this function.
     Also, documents are sampled proportionally to the number of sentences they contain, which means each sentence
     (rather than each document) has an equal chance of being sampled as a false example for the NextSentence task."""
+    # TO DO(Jiajun Bao): support new transformer repo: https://github.com/huggingface/transformers
     document = doc_database[doc_idx]
     # Account for [CLS], [SEP], [SEP]
     max_num_tokens = max_seq_length - 3

@@ -1,0 +1,11 @@
+#!/bin/bash
+# preprocess
+
+set -Eeuo pipefail
+set -x
+
+./env/bin/python3 next_sentence_pred_finetune/preprocess_data.py \
+--raw_file ./data/raw/transcripts_sentences.json \
+--output_dir ./data/interim/transcripts.txt \
+--num_workers 8 \
+--chunksize 128

@@ -116,6 +116,7 @@ class DocumentDatabase:
 
     def sample_doc(self, current_idx, sentence_weighted=True):
         # Uses the current iteration counter to ensure we don't sample the same doc twice
+        # TO DO(Jiajun Bao): add sentence weighted option
         if sentence_weighted:
             # With sentence weighting, we sample docs proportionally to their sentence length
             if self.doc_cumsum is None or len(self.doc_cumsum) != len(self.doc_lengths):

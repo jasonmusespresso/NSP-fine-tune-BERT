@@ -425,7 +425,7 @@ def main():
                              "than this will be padded.")
     parser.add_argument("--do_train",
                         action='store_true',
-                        help="Whether to run training.")
+                        help="Whether to data training.")
     parser.add_argument("--train_batch_size",
                         default=32,
                         type=int,

@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import logging
 from tqdm.auto import tqdm
-from spacy.tokenizer import Tokenizer
 from spacy.lang.en import English
 from argparse import ArgumentParser
 from multiprocessing import Pool
@@ -37,6 +36,7 @@ def raw_data_processer(lines):
     results = list()
     for line in lines:
         # tokenizer with spacy tokenizer
+        # TO DO(Jiajun Bao): add option to switch tokenizer
         line = line.strip()
         if len(tokenizer(line)) > 1:
             results.append(line)
@@ -47,13 +47,16 @@ def raw_data_processer(lines):
 
 def main():
     parser = ArgumentParser()
-    default_transcript_path = os.path.join(ROOT_FOLDER, 'data', 'raw', 'transcripts_sentences.json')
-    default_output_path = os.path.join(ROOT_FOLDER, 'data', 'interim')
+    default_transcript_path = os.path.join('data', 'raw', 'transcripts_sentences.json')
+    default_output_path = os.path.join('data', 'interim')
     parser.add_argument('--raw_file', type=Path, default=default_transcript_path)
     parser.add_argument('--output_dir', type=Path, default=default_output_path)
     parser.add_argument('--num_workers', type=int, default=8)
     parser.add_argument('--chunksize', type=int, default=128)
     args = parser.parse_args()
+
+    args.raw_file = os.path.join(ROOT_FOLDER, args.raw_file)
+    args.output_dir = os.path.join(ROOT_FOLDER, args.output_dir)
 
     logging.info('Reading the whole transcript file')
     with open(args.raw_file, 'r') as istream:
