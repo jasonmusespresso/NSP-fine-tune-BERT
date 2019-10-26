@@ -4,7 +4,7 @@
 set -Eeuo pipefail
 set -x
 
-./env/bin/python3 pregenerate_training_data.py \
+./env/bin/python3 next_sentence_pred_finetune/pregenerate_data.py \
 --train_corpus ./data/interim/transcripts.txt \
 --bert_model bert-base-uncased \
 --do_lower_case \
