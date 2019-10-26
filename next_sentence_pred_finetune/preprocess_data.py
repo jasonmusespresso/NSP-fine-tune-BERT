@@ -72,6 +72,8 @@ def main():
     pool = Pool(processes=args.num_workers)
     for sentences in tqdm(pool.imap(raw_data_processer, lines, args.chunksize), desc='Preprocess data'):
         results.append(sentences)
+    pool.close()
+    pool.join()
 
     for sentences in tqdm(results, desc='Writing to file'):
         if len(sentences) <= 1:
