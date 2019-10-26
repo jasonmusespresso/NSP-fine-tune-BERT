@@ -17,5 +17,6 @@ setup(
         'pytorch-transformers',
         'tqdm',
         'spacy',
+        'pathlib',
     ],
 )
