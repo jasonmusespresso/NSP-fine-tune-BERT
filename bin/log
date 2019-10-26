@@ -1,0 +1,14 @@
+#!/bin/bash
+# data
+
+# Stop on errors
+# See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+set -Eeuo pipefail
+
+
+echo '# NSP-fine-tune' > README.md
+echo 'Fine-tune BERT using Next Sentence Prediction Loss' >> README.md
+echo '' >> README.md
+echo '~~~' >> README.md
+tree . -I 'fine_tuned_bert.egg-info|__pycache__|env'  >> README.md
+echo '~~~' >> README.md
