@@ -16,5 +16,6 @@ setup(
         'torchvision==0.4.0',
         'pytorch-transformers',
         'tqdm',
+        'spacy',
     ],
 )
