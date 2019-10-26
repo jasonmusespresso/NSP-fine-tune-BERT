@@ -48,7 +48,7 @@ def raw_data_processer(lines):
 def main():
     parser = ArgumentParser()
     default_transcript_path = os.path.join(ROOT_FOLDER, 'data', 'raw', 'transcripts_sentences.json')
-    default_output_path = os.path.join(ROOT_FOLDER, 'data', 'processed')
+    default_output_path = os.path.join(ROOT_FOLDER, 'data', 'interim')
     parser.add_argument('--raw_file', type=Path, default=default_transcript_path)
     parser.add_argument('--output_dir', type=Path, default=default_output_path)
     parser.add_argument('--num_workers', type=int, default=8)
