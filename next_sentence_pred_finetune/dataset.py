@@ -23,8 +23,8 @@ class PregeneratedDataset(Dataset):
         self.data_epoch = epoch % num_data_epochs
         data_file = training_path / f"epoch_{self.data_epoch}_train.json" if training \
             else training_path / f"epoch_{self.data_epoch}_dev.json"
-        metrics_file = training_path / f"epoch_{self.data_epoch}_metrics_train.json" if training \
-            else training_path / f"epoch_{self.data_epoch}_dev.json"
+        metrics_file = training_path / f"epoch_{self.data_epoch}_train_metrics.json" if training \
+            else training_path / f"epoch_{self.data_epoch}_dev_metrics.json"
         assert data_file.is_file() and metrics_file.is_file()
         metrics = json.loads(metrics_file.read_text())
         num_samples = metrics['num_training_examples'] if training \
