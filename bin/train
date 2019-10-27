@@ -10,3 +10,4 @@ set -x
 --do_lower_case \
 --output_dir checkpoints/ \
 --epochs 3 \
+--train_batch_size 16
