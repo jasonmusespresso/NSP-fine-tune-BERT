@@ -230,23 +230,67 @@ def create_instances_from_document(
 
 
 def create_training_file(docs, vocab_list, args, epoch_num):
-    epoch_filename = args.output_dir / "epoch_{}.json".format(epoch_num)
+    epoch_filename = args.output_dir / "epoch_{}_train.json".format(epoch_num)
     num_instances = 0
+    num_positive = 0
+    num_negative = 0
     with epoch_filename.open('w') as epoch_file:
         for doc_idx in trange(len(docs), desc="Document"):
             doc_instances = create_instances_from_document(
                 docs, doc_idx, max_seq_length=args.max_seq_len, short_seq_prob=args.short_seq_prob,
                 masked_lm_prob=args.masked_lm_prob, max_predictions_per_seq=args.max_predictions_per_seq,
                 whole_word_mask=args.do_whole_word_mask, vocab_list=vocab_list)
-            doc_instances = [json.dumps(instance) for instance in doc_instances]
+            tmp_doc_instances = list()
+            for instance in doc_instances:
+                if instance['is_random_next']:
+                    num_negative += 1
+                else:
+                    num_positive += 1
+                tmp_doc_instances.append(json.dumps(instance))
+            doc_instances = tmp_doc_instances
             for instance in doc_instances:
                 epoch_file.write(instance + '\n')
                 num_instances += 1
-    metrics_file = args.output_dir / "epoch_{}_metrics.json".format(epoch_num)
+    metrics_file = args.output_dir / "epoch_{}_train_metrics.json".format(epoch_num)
     with metrics_file.open('w') as metrics_file:
         metrics = {
             "num_training_examples": num_instances,
-            "max_seq_len": args.max_seq_len
+            "max_seq_len": args.max_seq_len,
+            "num_random_next": num_negative,
+            "num_real_next": num_positive,
+        }
+        metrics_file.write(json.dumps(metrics))
+
+
+def create_evaluating_file(docs, vocab_list, args, epoch_num):
+    epoch_filename = args.output_dir / "epoch_{}_dev.json".format(epoch_num)
+    num_instances = 0
+    num_positive = 0
+    num_negative = 0
+    with epoch_filename.open('w') as epoch_file:
+        for doc_idx in trange(len(docs), desc="Document"):
+            doc_instances = create_instances_from_document(
+                docs, doc_idx, max_seq_length=args.max_seq_len, short_seq_prob=args.short_seq_prob,
+                masked_lm_prob=args.masked_lm_prob, max_predictions_per_seq=args.max_predictions_per_seq,
+                whole_word_mask=args.do_whole_word_mask, vocab_list=vocab_list)
+            tmp_doc_instances = list()
+            for instance in doc_instances:
+                if instance['is_random_next']:
+                    num_negative += 1
+                else:
+                    num_positive += 1
+                tmp_doc_instances.append(json.dumps(instance))
+            doc_instances = tmp_doc_instances
+            for instance in doc_instances:
+                epoch_file.write(instance + '\n')
+                num_instances += 1
+    metrics_file = args.output_dir / "epoch_{}_dev_metrics.json".format(epoch_num)
+    with metrics_file.open('w') as metrics_file:
+        metrics = {
+            "num_training_examples": num_instances,
+            "max_seq_len": args.max_seq_len,
+            "num_random_next": num_negative,
+            "num_real_next": num_positive,
         }
         metrics_file.write(json.dumps(metrics))
 

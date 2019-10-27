@@ -10,4 +10,5 @@ set -x
 --do_lower_case \
 --output_dir ./data/processed/ \
 --epochs_to_generate 3 \
---max_seq_len 256
+--max_seq_len 256 \
+--dev_frac 0.2
