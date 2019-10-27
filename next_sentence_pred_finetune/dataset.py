@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__) ##
 
 
 class PregeneratedDataset(Dataset):
-    def __init__(self, training_path, epoch, tokenizer, num_data_epochs, reduce_memory=False, training=False):
+    def __init__(self, training_path, epoch, tokenizer, num_data_epochs, reduce_memory=False, training=True):
         self.vocab = tokenizer.vocab
         self.tokenizer = tokenizer
         self.epoch = epoch
@@ -52,7 +52,7 @@ class PregeneratedDataset(Dataset):
             segment_ids = np.zeros(shape=(num_samples, seq_len), dtype=np.bool)
             lm_label_ids = np.full(shape=(num_samples, seq_len), dtype=np.int32, fill_value=-1)
             is_nexts = np.zeros(shape=(num_samples,), dtype=np.bool)
-        logging.info(f"Loading training examples for epoch {epoch}")
+        logging.info(f"Loading {'training' if training else 'evaluating'} examples for epoch {epoch}")
         with data_file.open() as f:
             for i, line in enumerate(tqdm(f, total=num_samples, desc="Training examples")):
                 line = line.strip()
