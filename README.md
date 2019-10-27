@@ -2,6 +2,10 @@
 Fine-tune BERT using Next Sentence Prediction Loss
 
 ~~~
+Usage:
+./bin/data preprocess # preprocess data
+./bin/data pregenerate # add random mask and datasets for all epochs
+Directory Tree:
 .
 ├── README.md
 ├── bin
@@ -27,8 +31,10 @@ Fine-tune BERT using Next Sentence Prediction Loss
 │   ├── simple_lm_finetuning.py
 │   ├── train.py
 │   └── utils.py
+├── sbatch
+│   └── train
 ├── setup.py
 └── tests
 
-8 directories, 18 files
+9 directories, 19 files
 ~~~

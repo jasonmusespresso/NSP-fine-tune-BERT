@@ -10,5 +10,9 @@ echo '# NSP-fine-tune' > README.md
 echo 'Fine-tune BERT using Next Sentence Prediction Loss' >> README.md
 echo '' >> README.md
 echo '~~~' >> README.md
+echo 'Usage:' >> README.md
+echo './bin/data preprocess # preprocess data' >> README.md
+echo './bin/data pregenerate # add random mask and datasets for all epochs' >> README.md
+echo 'Directory Tree:' >> README.md
 tree . -I 'fine_tuned_bert.egg-info|__pycache__|env'  >> README.md
 echo '~~~' >> README.md
