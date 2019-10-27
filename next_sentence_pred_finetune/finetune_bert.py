@@ -111,7 +111,7 @@ def main():
                             args.gradient_accumulation_steps))
 
     args.train_batch_size = args.train_batch_size // args.gradient_accumulation_steps
-
+    # initialize random seed so that training results could be reproduced (Jiajun Bao)
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -121,8 +121,6 @@ def main():
     if args.output_dir.is_dir() and list(args.output_dir.iterdir()):
         logging.warning(f"Output directory ({args.output_dir}) already exists and is not empty!")
     args.output_dir.mkdir(parents=True, exist_ok=True)
-
-    tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
 
     total_train_examples = 0
     for i in range(args.epochs):
@@ -178,54 +176,11 @@ def main():
         optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
     scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.warmup_steps, t_total=num_train_optimization_steps)
 
-    global_step = 0
-    logging.info("***** Running training *****")
-    logging.info(f"  Num examples = {total_train_examples}")
-    logging.info("  Batch size = %d", args.train_batch_size)
-    logging.info("  Num steps = %d", num_train_optimization_steps)
-    model.train()
-    for epoch in range(args.epochs):
-        epoch_dataset = PregeneratedDataset(epoch=epoch, training_path=args.pregenerated_data, tokenizer=tokenizer,
-                                            num_data_epochs=num_data_epochs, reduce_memory=args.reduce_memory)
-        if args.local_rank == -1:
-            train_sampler = RandomSampler(epoch_dataset)
-        else:
-            train_sampler = DistributedSampler(epoch_dataset)
-        train_dataloader = DataLoader(epoch_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
-        tr_loss = 0
-        nb_tr_examples, nb_tr_steps = 0, 0
-        with tqdm(total=len(train_dataloader), desc=f"Epoch {epoch}") as pbar:
-            for step, batch in enumerate(train_dataloader):
-                batch = tuple(t.to(device) for t in batch)
-                input_ids, input_mask, segment_ids, lm_label_ids, is_next = batch
-                outputs = model(input_ids, segment_ids, input_mask, lm_label_ids, is_next)
-                loss = outputs[0]
-                if n_gpu > 1:
-                    loss = loss.mean() # mean() to average on multi-gpu.
-                if args.gradient_accumulation_steps > 1:
-                    loss = loss / args.gradient_accumulation_steps
-                if args.fp16:
-                    optimizer.backward(loss)
-                else:
-                    loss.backward()
-                tr_loss += loss.item()
-                nb_tr_examples += input_ids.size(0)
-                nb_tr_steps += 1
-                pbar.update(1)
-                mean_loss = tr_loss * args.gradient_accumulation_steps / nb_tr_steps
-                pbar.set_postfix_str(f"Loss: {mean_loss:.5f}")
-                if (step + 1) % args.gradient_accumulation_steps == 0:
-                    scheduler.step()  # Update learning rate schedule
-                    optimizer.step()
-                    optimizer.zero_grad()
-                    global_step += 1
-
-    # Save a trained model
-    if  n_gpu > 1 and torch.distributed.get_rank() == 0  or n_gpu <=1 :
-        logging.info("** ** * Saving fine-tuned model ** ** * ")
-        model.save_pretrained(args.output_dir)
-        tokenizer.save_pretrained(args.output_dir)
-
+    args.n_gpu = n_gpu
+    args.device = device
+    args.num_data_epochs = num_data_epochs
+    args.num_train_optimization_steps = num_train_optimization_steps
+    args.total_train_examples = total_train_examples
 
 if __name__ == '__main__':
     main()
