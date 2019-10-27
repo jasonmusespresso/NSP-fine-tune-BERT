@@ -69,6 +69,6 @@ def train(args, model, optimizer, scheduler):
         save_directory.mkdir(parents=True, exist_ok=True)
         model.save_pretrained(save_directory)
         tokenizer.save_pretrained(save_directory)
-        logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
+        logger.info(" global_step = %s, average loss = %s", global_step, tr_loss / global_step)
     logger.info("Saved model checkpoints to %s", args.output_dir)
 

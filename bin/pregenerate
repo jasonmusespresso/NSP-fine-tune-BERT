@@ -9,6 +9,6 @@ set -x
 --bert_model bert-base-uncased \
 --do_lower_case \
 --output_dir ./data/processed/ \
---epochs_to_generate 10 \
+--epochs_to_generate 20 \
 --max_seq_len 256 \
 --dev_frac 0.2

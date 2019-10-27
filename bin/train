@@ -9,5 +9,5 @@ set -x
 --bert_model bert-base-uncased \
 --do_lower_case \
 --output_dir checkpoints/ \
---epochs 3 \
+--epochs 20 \
 --train_batch_size 16
