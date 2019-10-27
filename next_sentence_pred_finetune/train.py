@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def train(args, model, optimizer, scheduler):
-    tb_writer = SummaryWriter(args.bert_model)
+    tb_writer = SummaryWriter('logs')
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
     global_step = 0
     logging.info("***** Running training *****")
