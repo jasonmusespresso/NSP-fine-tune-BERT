@@ -5,7 +5,7 @@ from pathlib import Path
 from tqdm import tqdm, trange
 from multiprocessing import Pool
 from pytorch_transformers.tokenization_bert import BertTokenizer
-from random import random
+import random
 
 from next_sentence_pred_finetune.dataset import DocumentDatabase
 from next_sentence_pred_finetune.utils import create_training_file, create_evaluating_file
@@ -57,13 +57,13 @@ def main():
             for line in tqdm(f, desc="Loading Dataset", unit=" lines"):
                 line = line.strip()
                 if line == "":
-                    train_docs.add_document(doc) if random() > args.dev_frac else dev_docs.add_document(doc)
+                    train_docs.add_document(doc) if random.random() > args.dev_frac else dev_docs.add_document(doc)
                     doc = []
                 else:
                     tokens = tokenizer.tokenize(line)
                     doc.append(tokens)
             if doc:
-                train_docs.add_document(doc) if random() > args.dev_frac else dev_docs.add_document(doc)
+                train_docs.add_document(doc) if random.random() > args.dev_frac else dev_docs.add_document(doc)
                 # If the last doc didn't end on a newline, make sure it still gets added
         if len(train_docs) <= 1 or len(dev_docs) <= 1:
             exit("ERROR: No document breaks were found in the input file! These are necessary to allow the script to "
