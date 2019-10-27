@@ -18,5 +18,6 @@ setup(
         'tqdm',
         'spacy',
         'pathlib',
+        'tensorboardX',
     ],
 )

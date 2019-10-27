@@ -14,7 +14,10 @@ from torch.utils.data.distributed import DistributedSampler
 from pytorch_transformers.modeling_bert import BertForPreTraining
 from pytorch_transformers.tokenization_bert import BertTokenizer
 from pytorch_transformers.optimization import AdamW, WarmupLinearSchedule
-from torch.utils.tensorboard import SummaryWriter
+try:
+    from torch.utils.tensorboard import SummaryWriter
+except ModuleNotFoundError:
+    from tensorboardX import SummaryWriter
 
 from next_sentence_pred_finetune.evaluate import evaluate
 from next_sentence_pred_finetune.dataset import PregeneratedDataset
