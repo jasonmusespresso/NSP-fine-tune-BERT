@@ -5,7 +5,7 @@
 #SBATCH --mem=180g
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
-#SBATCH --account=mihalcea
+#SBATCH --account=jurgens
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --time=48:00:00
 #SBATCH --mail-user=jiajunb@umich.edu
