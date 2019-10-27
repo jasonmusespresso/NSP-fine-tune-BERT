@@ -9,7 +9,7 @@ import json
 import random
 import numpy as np
 from tqdm import tqdm
-from torch.utils.data import DataLoader, Dataset, RandomSampler
+from torch.utils.data import DataLoader, Dataset, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from pytorch_transformers.modeling_bert import BertForPreTraining
 from pytorch_transformers.tokenization_bert import BertTokenizer
@@ -19,18 +19,21 @@ from next_sentence_pred_finetune.dataset import PregeneratedDataset
 
 logger = logging.getLogger(__name__)
 
+
 def evaluate(args, epoch, model, tokenizer):
+    model.eval()
     epoch_dataset = PregeneratedDataset(epoch=epoch, training_path=args.pregenerated_data, tokenizer=tokenizer,
-                                        num_data_epochs=args.num_data_epochs, reduce_memory=args.reduce_memory)
+                                        num_data_epochs=args.num_data_epochs, reduce_memory=args.reduce_memory, training=False)
     if args.local_rank == -1:
-        train_sampler = RandomSampler(epoch_dataset)
+        eval_sampler = SequentialSampler(epoch_dataset)
     else:
-        train_sampler = DistributedSampler(epoch_dataset)
-    train_dataloader = DataLoader(epoch_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
+        eval_sampler = DistributedSampler(epoch_dataset)
+
+    eval_dataloader = DataLoader(epoch_dataset, sampler=eval_sampler, batch_size=args.train_batch_size)
     eval_loss = 0
     nb_eval_steps = 0
-    with tqdm(total=len(train_dataloader), desc=f"Epoch {epoch}") as pbar:
-        for step, batch in enumerate(train_dataloader):
+    with tqdm(total=len(eval_dataloader), desc=f"Epoch {epoch}") as pbar:
+        for step, batch in enumerate(eval_dataloader):
             batch = tuple(t.to(args.device) for t in batch)
             input_ids, input_mask, segment_ids, lm_label_ids, is_next = batch
             outputs = model(input_ids, segment_ids, input_mask, lm_label_ids, is_next)
