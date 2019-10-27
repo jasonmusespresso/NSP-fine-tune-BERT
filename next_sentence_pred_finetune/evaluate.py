@@ -1,19 +1,11 @@
 """Finetune using Next Sentence Prediction loss"""
 from __future__ import absolute_import, division, print_function
 
-from argparse import ArgumentParser
-from pathlib import Path
-import torch
 import logging
-import json
-import random
-import numpy as np
 from tqdm import tqdm
-from torch.utils.data import DataLoader, Dataset, SequentialSampler
+from torch.utils.data import DataLoader, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
-from pytorch_transformers.modeling_bert import BertForPreTraining
-from pytorch_transformers.tokenization_bert import BertTokenizer
-from pytorch_transformers.optimization import AdamW, WarmupLinearSchedule
+
 
 from next_sentence_pred_finetune.dataset import PregeneratedDataset
 

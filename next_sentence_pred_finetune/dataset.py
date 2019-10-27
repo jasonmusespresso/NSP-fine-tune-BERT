@@ -4,9 +4,9 @@ from pathlib import Path
 import numpy as np
 from tempfile import TemporaryDirectory
 import shelve
-from random import random, randrange, randint, shuffle, choice
+from random import randrange
 import json
-from torch.utils.data import DataLoader, Dataset, RandomSampler
+from torch.utils.data import Dataset
 import torch
 from tqdm.auto import tqdm
 from next_sentence_pred_finetune.utils import convert_example_to_features
