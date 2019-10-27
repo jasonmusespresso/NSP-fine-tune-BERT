@@ -287,7 +287,7 @@ def create_evaluating_file(docs, vocab_list, args, epoch_num):
     metrics_file = args.output_dir / "epoch_{}_dev_metrics.json".format(epoch_num)
     with metrics_file.open('w') as metrics_file:
         metrics = {
-            "num_training_examples": num_instances,
+            "num_evaluating_examples": num_instances,
             "max_seq_len": args.max_seq_len,
             "num_random_next": num_negative,
             "num_real_next": num_positive,

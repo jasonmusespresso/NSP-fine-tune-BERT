@@ -16,16 +16,19 @@ logger = logging.getLogger(__name__) ##
 
 
 class PregeneratedDataset(Dataset):
-    def __init__(self, training_path, epoch, tokenizer, num_data_epochs, reduce_memory=False):
+    def __init__(self, training_path, epoch, tokenizer, num_data_epochs, reduce_memory=False, training=False):
         self.vocab = tokenizer.vocab
         self.tokenizer = tokenizer
         self.epoch = epoch
         self.data_epoch = epoch % num_data_epochs
-        data_file = training_path / f"epoch_{self.data_epoch}.json"
-        metrics_file = training_path / f"epoch_{self.data_epoch}_metrics.json"
+        data_file = training_path / f"epoch_{self.data_epoch}_train.json" if training \
+            else training_path / f"epoch_{self.data_epoch}_dev.json"
+        metrics_file = training_path / f"epoch_{self.data_epoch}_metrics_train.json" if training \
+            else training_path / f"epoch_{self.data_epoch}_dev.json"
         assert data_file.is_file() and metrics_file.is_file()
         metrics = json.loads(metrics_file.read_text())
-        num_samples = metrics['num_training_examples']
+        num_samples = metrics['num_training_examples'] if training \
+            else metrics['num_evaluating_examples']
         seq_len = metrics['max_seq_len']
         self.temp_dir = None
         self.working_dir = None
