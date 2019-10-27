@@ -34,7 +34,8 @@ def evaluate(args, epoch, model, tokenizer):
             batch = tuple(t.to(args.device) for t in batch)
             input_ids, input_mask, segment_ids, lm_label_ids, is_next = batch
             outputs = model(input_ids, segment_ids, input_mask, lm_label_ids, is_next)
-            loss, prediction_scores, seq_relationship_score, hidden_states, attentions = outputs
+            loss = outputs[0]
+            # loss, prediction_scores, seq_relationship_score, hidden_states, attentions
 
             if args.n_gpu > 1:
                 loss = loss.mean()  # mean() to average on multi-gpu.
