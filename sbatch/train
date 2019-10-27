@@ -10,4 +10,4 @@
 #SBATCH --time=48:00:00
 #SBATCH --mail-user=jiajunb@umich.edu
 
-./bin/train.sh
+./bin/train
