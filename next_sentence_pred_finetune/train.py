@@ -16,6 +16,7 @@ from pytorch_transformers.tokenization_bert import BertTokenizer
 from pytorch_transformers.optimization import AdamW, WarmupLinearSchedule
 from tensorboardX import SummaryWriter
 
+
 from next_sentence_pred_finetune.evaluate import evaluate
 from next_sentence_pred_finetune.dataset import PregeneratedDataset
 
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def train(args, model, optimizer, scheduler):
-    tb_writer = SummaryWriter(args.label)
+    tb_writer = SummaryWriter(args.bert_model)
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
     global_step = 0
     logging.info("***** Running training *****")
