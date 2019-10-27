@@ -65,10 +65,9 @@ def train(args, model, optimizer, scheduler):
                 mean_loss = tr_loss * args.gradient_accumulation_steps / nb_tr_steps
                 tb_writer.add_scalar('mean_loss', mean_loss, global_step)
                 pbar.set_postfix_str(f"mean_loss: {mean_loss:.5f}")
-                logging.info(f"training_loss: {mean_loss:.5f}")
                 if (step + 1) % args.gradient_accumulation_steps == 0:
-                    scheduler.step()  # Update learning rate schedule
                     optimizer.step()
+                    scheduler.step()  # Update learning rate schedule
                     optimizer.zero_grad()
                     global_step += 1
 
