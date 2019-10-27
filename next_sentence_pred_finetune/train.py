@@ -74,7 +74,7 @@ def train(args, model, optimizer, scheduler):
         eval_loss = evaluate(args, epoch, model, tokenizer)
         tb_writer.add_scalar('eval_loss', eval_loss, epoch)
         save_directory = args.output_dir / f"epoch_{epoch}"
-        save_directory.mkdir(exists=True)
+        save_directory.mkdir(parents=True, exist_ok=True)
         model.save_pretrained(save_directory)
         tokenizer.save_pretrained(save_directory)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
