@@ -15,8 +15,7 @@ from pytorch_transformers.modeling_bert import BertForPreTraining
 from pytorch_transformers.tokenization_bert import BertTokenizer
 from pytorch_transformers.optimization import AdamW, WarmupLinearSchedule
 
-from next_sentence_pred_finetune.dataset import PregeneratedDataset
-
+from next_sentence_pred_finetune.train import train
 
 log_format = '%(asctime)-10s: %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_format)
@@ -181,6 +180,7 @@ def main():
     args.num_data_epochs = num_data_epochs
     args.num_train_optimization_steps = num_train_optimization_steps
     args.total_train_examples = total_train_examples
+    train(args, model, optimizer, scheduler)
 
 if __name__ == '__main__':
     main()
