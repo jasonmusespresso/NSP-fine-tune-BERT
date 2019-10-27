@@ -32,8 +32,8 @@ case $1 in
     ;;
 
   "reset")
-    rm data/processed/*
-    rm data/interim/transcripts.txt
+    rm -f data/processed/*
+    rm -f data/interim/transcripts.txt
     ./bin/preprocess
     ./bin/pregenerate
     ;;
