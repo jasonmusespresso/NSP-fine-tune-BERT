@@ -1,6 +1,12 @@
 # NSP-fine-tune
 Fine-tune BERT using Next Sentence Prediction Loss
 
+- Download checkpoints [here](https://drive.google.com/open?id=10BEBOf0MYTFLcvUCdgsqfX_FD8weZNJD)
+
+![train loss](assets/mean_loss.svg)
+![eval loss](assets/eval_loss.svg)
+
+## Set up environment and fine-tune BERT
 - set up environment
 ~~~
 # current path 
@@ -52,6 +58,7 @@ TensorBoard 2.0.0 at http://127.0.0.1:8008/ (Press CTRL+C to quit)
 
 # navigate browser to 127.0.0.1:8008
 ~~~
+
 - Trouble shoot: `-bash: ./bin/<file to execute>: Permission denied`
 ~~~
 chmod +x ./bin/<file to execute>
@@ -64,6 +71,9 @@ Usage:
 Directory Tree:
 .
 ├── README.md
+├── assets
+│   ├── eval_loss.svg
+│   └── mean_loss.svg
 ├── bin
 │   ├── data
 │   ├── log
@@ -77,6 +87,8 @@ Directory Tree:
 │   ├── processed
 │   └── raw
 │       └── transcripts_sentences.json
+├── logs
+│   └── events.out.tfevents.1572227775.gl1006.arc-ts.umich.edu
 ├── next_sentence_pred_finetune
 │   ├── dataset.py
 │   ├── evaluate.py
@@ -90,7 +102,7 @@ Directory Tree:
 ├── sbatch
 │   └── train
 ├── setup.py
+├── slurm-1253169.out
 └── tests
 
-9 directories, 19 files
 ~~~
