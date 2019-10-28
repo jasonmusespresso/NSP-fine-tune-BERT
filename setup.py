@@ -19,5 +19,6 @@ setup(
         'spacy',
         'pathlib',
         'tensorboardX',
+        'tensorflow',
     ],
 )
